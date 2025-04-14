@@ -106,6 +106,7 @@ export class SuperofficeAuthenticationProvider implements AuthenticationProvider
 
     // Authentication Methods
     private async authenticateWithPKCE(environment: typeof AuthFlow.ENVIRONMENT[number]): Promise<TokenSet> {
+        // const url = await this.authenticationService.generateAuthorizeUrl(environment);
 
         const issuer = await Issuer.discover(AuthFlow.getDiscoveryUrl(environment));
         const clientMetadata: ClientMetadata = {
@@ -117,14 +118,10 @@ export class SuperofficeAuthenticationProvider implements AuthenticationProvider
 
         const client: Client = new issuer.Client(clientMetadata);
         const state: string = generators.state();
-        const codeVerifier: string = generators.codeVerifier();
-        const codeChallenge: string = generators.codeChallenge(codeVerifier);
 
         const authURL: string = client.authorizationUrl({
             scope: 'openid',
             state,
-            code_challenge: codeChallenge,
-            code_challenge_method: 'S256',
         });
 
         await env.openExternal(Uri.parse(authURL));
@@ -136,8 +133,9 @@ export class SuperofficeAuthenticationProvider implements AuthenticationProvider
         try {
             tokenSet = await client.callback(
                 AuthFlow.REDIRECT_URI,
-                { code: authenticationCode },
-                { code_verifier: codeVerifier }
+                { code: authenticationCode, state: state }, 
+                {  state: state }, 
+                { exchangeBody: { client_secret: AuthFlow.CLIENT_SECRET}}
             ) as TokenSet;
             
         } catch (error) {
@@ -244,8 +242,6 @@ export class SuperofficeAuthenticationProvider implements AuthenticationProvider
 
     public handleUri(uri: Uri): ProviderResult<void>
     {
-        window.showInformationMessage(`URI handler called: ${uri.toString()}`);
-
         if (uri.path !== "/auth")
         {
             throw new Error("URI path not supported " + uri.path);

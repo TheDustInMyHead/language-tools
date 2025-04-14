@@ -16,6 +16,7 @@ export const AuthFlow = {
         `https://${environment}.superoffice.com/login/.well-known/openid-configuration`,
     REDIRECT_URI: vscode.Uri.parse(`${vscode.env.uriScheme}://superoffice.superofficedx-vscode-core/auth`).toString(),
     CLIENT_ID: '1a5764a8090f136cc9d30f381626d5fa',
+    CLIENT_SECRET: '',
     getStateUrl: (environment: string, contextIdentifier: string) => 
         `https://${environment}.superoffice.com/api/state/${contextIdentifier}`,
 
